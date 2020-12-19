@@ -22,6 +22,7 @@
 #include "sm64.h"
 #include "text_strings.h"
 #include "types.h"
+#include "../../enhancements/puppycam.h"
 
 u16 gDialogColorFadeTimer;
 s8 gLastDialogLineNum;
@@ -2602,7 +2603,10 @@ s16 render_pause_courses_and_castle(void) {
 #ifdef VERSION_EU
     gInGameLanguage = eu_get_language();
 #endif
-
+    #ifndef NC_CODE_NOMENU
+    if (newcam_option_open == 0)
+    {
+    #endif
     switch (gDialogBoxState) {
         case DIALOG_STATE_OPENING:
             gDialogLineNum = 1;
@@ -2678,6 +2682,16 @@ s16 render_pause_courses_and_castle(void) {
     if (gDialogTextAlpha < 250) {
         gDialogTextAlpha += 25;
     }
+    #ifndef NC_CODE_NOMENU
+    }
+    else
+    {
+        shade_screen();
+        newcam_display_options();
+    }
+    newcam_check_pause_buttons();
+    newcam_render_option_text();
+    #endif
 
     return 0;
 }
