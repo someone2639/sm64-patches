@@ -10,14 +10,12 @@
 #include "sound_init.h"
 #include "level_table.h"
 #include "course_table.h"
-#include "thread6.h"
-#include "../../enhancements/puppycam.h"
+#include "rumble_init.h"
 
 #define MENU_DATA_MAGIC 0x4849
 #define SAVE_FILE_MAGIC 0x4441
 
-STATIC_ASSERT(sizeof(struct SaveBuffer) <= EEPROM_SIZE, "eeprom buffer size higher than intended");
-STATIC_ASSERT(sizeof(struct SaveBuffer) >= EEPROM_SIZE, "eeprom buffer size lower than intended");
+STATIC_ASSERT(sizeof(struct SaveBuffer) == EEPROM_SIZE, "eeprom buffer size must match");
 
 extern struct SaveBuffer gSaveBuffer;
 
@@ -29,10 +27,10 @@ s8 gSaveFileModified;
 u8 gLastCompletedCourseNum = COURSE_NONE;
 u8 gLastCompletedStarNum = 0;
 s8 sUnusedGotGlobalCoinHiScore = 0;
-u8 gGotFileCoinHiScore = 0;
+u8 gGotFileCoinHiScore = FALSE;
 u8 gCurrCourseStarFlags = 0;
 
-u8 gSpecialTripleJump = 0;
+u8 gSpecialTripleJump = FALSE;
 
 #define STUB_LEVEL(_0, _1, courseenum, _3, _4, _5, _6, _7, _8) courseenum,
 #define DEFINE_LEVEL(_0, _1, courseenum, _3, _4, _5, _6, _7, _8, _9, _10) courseenum,
@@ -66,12 +64,12 @@ static s32 read_eeprom_data(void *buffer, s32 size) {
         u32 offset = (u32)((u8 *) buffer - (u8 *) &gSaveBuffer) / 8;
 
         do {
-#ifdef VERSION_SH
+#if ENABLE_RUMBLE
             block_until_rumble_pak_free();
 #endif
             triesLeft--;
             status = osEepromLongRead(&gSIEventMesgQueue, offset, buffer, size);
-#ifdef VERSION_SH
+#if ENABLE_RUMBLE
             release_rumble_pak_control();
 #endif
         } while (triesLeft > 0 && status != 0);
@@ -94,12 +92,12 @@ static s32 write_eeprom_data(void *buffer, s32 size) {
         u32 offset = (u32)((u8 *) buffer - (u8 *) &gSaveBuffer) >> 3;
 
         do {
-#ifdef VERSION_SH
+#if ENABLE_RUMBLE
             block_until_rumble_pak_free();
 #endif
             triesLeft--;
             status = osEepromLongWrite(&gSIEventMesgQueue, offset, buffer, size);
-#ifdef VERSION_SH
+#if ENABLE_RUMBLE
             release_rumble_pak_control();
 #endif
         } while (triesLeft > 0 && status != 0);
@@ -366,7 +364,7 @@ void save_file_collect_star_or_key(s16 coinScore, s16 starIndex) {
     gLastCompletedCourseNum = courseIndex + 1;
     gLastCompletedStarNum = starIndex + 1;
     sUnusedGotGlobalCoinHiScore = 0;
-    gGotFileCoinHiScore = 0;
+    gGotFileCoinHiScore = FALSE;
 
     if (courseIndex >= 0 && courseIndex < COURSE_STAGES_COUNT) {
         //! Compares the coin score as a 16 bit value, but only writes the 8 bit
@@ -380,7 +378,7 @@ void save_file_collect_star_or_key(s16 coinScore, s16 starIndex) {
             gSaveBuffer.files[fileIndex][0].courseCoinScores[courseIndex] = coinScore;
             touch_coin_score_age(fileIndex, courseIndex);
 
-            gGotFileCoinHiScore = 1;
+            gGotFileCoinHiScore = TRUE;
             gSaveFileModified = TRUE;
         }
     }
@@ -477,7 +475,7 @@ void save_file_clear_flags(u32 flags) {
 }
 
 u32 save_file_get_flags(void) {
-    if (gCurrCreditsEntry != 0 || gCurrDemoInput != NULL) {
+    if (gCurrCreditsEntry != NULL || gCurrDemoInput != NULL) {
         return 0;
     }
     return gSaveBuffer.files[gCurrSaveFileNum - 1][0].flags;
@@ -491,7 +489,7 @@ u32 save_file_get_star_flags(s32 fileIndex, s32 courseIndex) {
     u32 starFlags;
 
     if (courseIndex == -1) {
-        starFlags = (gSaveBuffer.files[fileIndex][0].flags >> 24) & 0x7F;
+        starFlags = SAVE_FLAG_TO_STAR_FLAG(gSaveBuffer.files[fileIndex][0].flags);
     } else {
         starFlags = gSaveBuffer.files[fileIndex][0].courseStars[courseIndex] & 0x7F;
     }
@@ -505,7 +503,7 @@ u32 save_file_get_star_flags(s32 fileIndex, s32 courseIndex) {
  */
 void save_file_set_star_flags(s32 fileIndex, s32 courseIndex, u32 starFlags) {
     if (courseIndex == -1) {
-        gSaveBuffer.files[fileIndex][0].flags |= starFlags << 24;
+        gSaveBuffer.files[fileIndex][0].flags |= STAR_FLAG_TO_SAVE_FLAG(starFlags);
     } else {
         gSaveBuffer.files[fileIndex][0].courseStars[courseIndex] |= starFlags;
     }
@@ -567,51 +565,6 @@ u16 save_file_get_sound_mode(void) {
     return gSaveBuffer.menuData[0].soundMode;
 }
 
-#ifndef NC_CODE_NOSAVE
-void save_file_set_setting(void) {
-
-    gSaveBuffer.menuData[0].camx = (s16)newcam_sensitivityX;
-    gSaveBuffer.menuData[0].camy = (s16)newcam_sensitivityY;
-    gSaveBuffer.menuData[0].invertx = (s16)newcam_invertX;
-    gSaveBuffer.menuData[0].inverty = (s16)newcam_invertY;
-    gSaveBuffer.menuData[0].camc = (s16)newcam_aggression;
-    gSaveBuffer.menuData[0].camp = (s16)newcam_panlevel;
-    gSaveBuffer.menuData[0].analogue = (s16)newcam_analogue;
-    gSaveBuffer.menuData[0].degrade = (s16)newcam_degrade;
-
-    gSaveBuffer.menuData[0].firsttime = 1;
-
-
-    gMainMenuDataModified = TRUE;
-    save_main_menu_data();
-}
-
-void save_file_get_setting(void) {
-        newcam_sensitivityX = gSaveBuffer.menuData[0].camx;
-        newcam_sensitivityY = gSaveBuffer.menuData[0].camy;
-        newcam_invertX = gSaveBuffer.menuData[0].invertx;
-        newcam_invertY = gSaveBuffer.menuData[0].inverty;
-        newcam_aggression = gSaveBuffer.menuData[0].camc;
-        newcam_panlevel = gSaveBuffer.menuData[0].camp;
-        newcam_analogue = gSaveBuffer.menuData[0].analogue;
-        newcam_degrade = gSaveBuffer.menuData[0].degrade;
-}
-
-u8 save_check_firsttime(void)
-{
-    return gSaveBuffer.menuData[0].firsttime;
-}
-
-
-void save_set_firsttime(void)
-{
-    gSaveBuffer.menuData[0].firsttime = 1;
-
-    gMainMenuDataModified = TRUE;
-    save_main_menu_data();
-}
-#endif
-
 void save_file_move_cap_to_default_location(void) {
     if (save_file_get_flags() & SAVE_FLAG_CAP_ON_GROUND) {
         switch (gSaveBuffer.files[gCurrSaveFileNum - 1][0].capLevel) {
@@ -667,7 +620,7 @@ void check_if_should_set_warp_checkpoint(struct WarpNode *warpNode) {
  * returns TRUE if input WarpNode was updated, and FALSE if not.
  */
 s32 check_warp_checkpoint(struct WarpNode *warpNode) {
-    s16 isWarpCheckpointActive = FALSE;
+    s16 warpCheckpointActive = FALSE;
     s16 currCourseNum = gLevelToCourseNumTable[(warpNode->destLevel & 0x7F) - 1];
 
     // gSavedCourseNum is only used in this function.
@@ -676,11 +629,11 @@ s32 check_warp_checkpoint(struct WarpNode *warpNode) {
         warpNode->destLevel = gWarpCheckpoint.levelID;
         warpNode->destArea = gWarpCheckpoint.areaNum;
         warpNode->destNode = gWarpCheckpoint.warpNode;
-        isWarpCheckpointActive = TRUE;
+        warpCheckpointActive = TRUE;
     } else {
         // Disable the warp checkpoint just in case the other 2 conditions failed?
         gWarpCheckpoint.courseNum = COURSE_NONE;
     }
 
-    return isWarpCheckpointActive;
+    return warpCheckpointActive;
 }
