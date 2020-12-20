@@ -368,7 +368,7 @@ static void newcam_rotate_button(void)
         if ((gPlayer1Controller->buttonPressed & L_CBUTTONS) && newcam_analogue == 0)
         {
             #ifndef nosound
-            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gDefaultSoundArgs);
+            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
             #endif
             if (newcam_modeflags & NC_FLAG_8D)
                 newcam_yaw_target = newcam_yaw_target+(ivrt(newcam_invertX)*0x2000);
@@ -380,7 +380,7 @@ static void newcam_rotate_button(void)
         if ((gPlayer1Controller->buttonPressed & R_CBUTTONS) && newcam_analogue == 0)
         {
             #ifndef nosound
-            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gDefaultSoundArgs);
+            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
             #endif
             if (newcam_modeflags & NC_FLAG_8D)
                 newcam_yaw_target = newcam_yaw_target-(ivrt(newcam_invertX)*0x2000);
@@ -430,7 +430,7 @@ static void newcam_rotate_button(void)
             newcam_yaw_target = newcam_yaw+(ivrt(newcam_invertX)*0x3000);
             newcam_centering = 1;
             #ifndef nosound
-            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gDefaultSoundArgs);
+            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
             #endif
         }
         newcam_framessincec[0] = 0;
@@ -442,7 +442,7 @@ static void newcam_rotate_button(void)
             newcam_yaw_target = newcam_yaw-(ivrt(newcam_invertX)*0x3000);
             newcam_centering = 1;
             #ifndef nosound
-            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gDefaultSoundArgs);
+            play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
             #endif
         }
         newcam_framessincec[1] = 0;
@@ -463,7 +463,7 @@ static void newcam_rotate_button(void)
                     newcam_cstick_down = 1;
                     newcam_centering = 1;
                     #ifndef nosound
-                    play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gDefaultSoundArgs);
+                    play_sound(SOUND_MENU_CAMERA_ZOOM_IN, gGlobalSoundSource);
                     #endif
                     if (newcam_stick2[0] > 20)
                     {
@@ -529,7 +529,7 @@ static void newcam_zoom_button(void)
     if (gPlayer1Controller->buttonPressed & R_TRIG && newcam_modeflags & NC_FLAG_XTURN)
     {
         #ifndef nosound
-        play_sound(SOUND_MENU_CLICK_CHANGE_VIEW, gDefaultSoundArgs);
+        play_sound(SOUND_MENU_CLICK_CHANGE_VIEW, gGlobalSoundSource);
         #endif
 
         if (newcam_distance_target == newcam_distance_values[0])
@@ -970,7 +970,7 @@ void newcam_check_pause_buttons()
     if (gPlayer1Controller->buttonPressed & R_TRIG)
     {
             #ifndef nosound
-            play_sound(SOUND_MENU_CHANGE_SELECT, gDefaultSoundArgs);
+            play_sound(SOUND_MENU_CHANGE_SELECT, gGlobalSoundSource);
             #endif
         if (newcam_option_open == 0)
         {
@@ -1011,7 +1011,7 @@ void newcam_check_pause_buttons()
                     default: newcam_option_timer += 5; break;
                 }
                 #ifndef nosound
-                play_sound(SOUND_MENU_CHANGE_SELECT, gDefaultSoundArgs);
+                play_sound(SOUND_MENU_CHANGE_SELECT, gGlobalSoundSource);
                 #endif
                 if (gPlayer1Controller->rawStickY >= 60 || gPlayer1Controller->buttonDown & U_JPAD)
                 {
@@ -1040,7 +1040,7 @@ void newcam_check_pause_buttons()
                     default: newcam_option_timer += 5; break;
                 }
                 #ifndef nosound
-                play_sound(SOUND_MENU_CHANGE_SELECT, gDefaultSoundArgs);
+                play_sound(SOUND_MENU_CHANGE_SELECT, gGlobalSoundSource);
                 #endif
                 if (gPlayer1Controller->rawStickX >= 60 || gPlayer1Controller->buttonDown & R_JPAD)
                     newcam_change_setting(1);
