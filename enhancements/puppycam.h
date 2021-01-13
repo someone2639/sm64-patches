@@ -58,6 +58,9 @@ extern u8 newcam_xlu;
 
 extern u16 newcam_mode;
 extern s16 newcam_yaw;
+extern s16 newcam_tilt;
+extern u16 newcam_distance_target;
+extern s16 newcam_distance_values[3];
 
 #ifndef TARGET_N64
 extern s16 mousepos[2];

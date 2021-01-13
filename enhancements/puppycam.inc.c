@@ -702,7 +702,8 @@ static void newcam_find_fixed(void)
 
     for (i = 0; i < sizeof(newcam_fixedcam) / sizeof(struct newcam_hardpos); i++)
     {
-        if (newcam_fixedcam[i].newcam_hard_levelID == gCurrLevelNum && newcam_fixedcam[i].newcam_hard_areaID == gCurrAreaIndex)
+        if ((newcam_fixedcam[i].newcam_hard_levelID == LEVEL_MAX) || 
+            (newcam_fixedcam[i].newcam_hard_levelID == gCurrLevelNum && newcam_fixedcam[i].newcam_hard_areaID == gCurrAreaIndex))
         {//I didn't wanna just obliterate the horizontal plane of the IDE with a beefy if statement, besides, I think this runs slightly better anyway?
             if (newcam_pos_target[0] > newcam_fixedcam[i].newcam_hard_X1)
             if (newcam_pos_target[0] < newcam_fixedcam[i].newcam_hard_X2)
@@ -735,7 +736,7 @@ static void newcam_find_fixed(void)
                 if (newcam_fixedcam[i].newcam_hard_script != 0)
                 {
                     func = newcam_fixedcam[i].newcam_hard_script;
-                    (func)();
+                    (func)(&newcam_fixedcam[i]);
                 }
             }
         }
