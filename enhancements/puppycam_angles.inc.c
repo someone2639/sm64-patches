@@ -19,6 +19,7 @@ struct newcam_hardpos newcam_fixedcam[] =
 /*Cam X*/ 32767,/*Cam Y*/ 32767,/*Cam Z*/ 32767, //The position the camera gets placed for NC_MODE_FIXED and NC_MODE_FIXED_NOMOVE
 /*Look X*/ 32767,/*Look Y*/ 32767,/*Look Z*/ 32767}, //The position the camera looks at for NC_MODE_FIXED_NOMOVE
 
+// Parallel Cam with custom C-Up Mode Reimplementation
 {/*Level ID*/ LEVEL_MAX,/*Area ID*/ 1,/*Permaswap*/ 0,
  /*Mode*/NC_FLAG_COLLISION | NC_FLAG_ZOOM | NC_FLAG_FOCUSX | NC_FLAG_FOCUSZ | NC_FLAG_POSX | NC_FLAG_POSY | NC_FLAG_POSZ,
  /*Script*/ &newcam_parallel_cam, //Standard params.
