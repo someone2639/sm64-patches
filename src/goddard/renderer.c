@@ -2725,8 +2725,8 @@ void gd_create_perspective_matrix(f32 fovy, f32 aspect, f32 near, f32 far) {
     UNUSED f32 unusedf = 0.0625f;
 
     sGdPerspTimer += 0.1;
-    guPerspective(&DL_CURRENT_MTX(sCurrentGdDl), &perspNorm, fovy, aspect, near, far, 1.0f);
-
+    // guPerspective(&DL_CURRENT_MTX(sCurrentGdDl), &perspNorm, fovy, aspect, near, far, 1.0f);
+    guOrtho(&DL_CURRENT_MTX(sCurrentGdDl), -960.f, 960.f, -720.f, 720.f, 0.f, 16384.f, 1.0f);
     gSPPerspNormalize(next_gfx(), perspNorm);
 
     perspecMtx = GD_LOWER_29(&DL_CURRENT_MTX(sCurrentGdDl));
